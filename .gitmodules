@@ -1,0 +1,9 @@
+[submodule "dep/tcpdump"]
+	path = dep/tcpdump
+	url = https://github.com/the-tcpdump-group/tcpdump
+[submodule "dep/googletest"]
+	path = dep/googletest
+	url = git@github.com:justinls/googletest.git
+[submodule "dep/libpcap"]
+	path = dep/libpcap
+	url = https://github.com/the-tcpdump-group/libpcap
