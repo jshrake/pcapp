@@ -12,7 +12,8 @@ include_directories(${PROJ_INCLUDES} ${PROJ_DEPS})
 set(SOURCES pcap.cpp
             device.cpp
             error.cpp
-            filter_program.cpp)
+            filter_program.cpp
+            time_stamp.cpp)
 
 # Binary output directory
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  "${CMAKE_SOURCE_DIR}/lib")
