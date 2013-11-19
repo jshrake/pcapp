@@ -3,14 +3,12 @@
 #include <iostream>
 
 namespace {
-  std::ostream *logger{&std::cerr};
+std::ostream *logger{ &std::cerr };
 }
 
 namespace libpcap {
 
-void set_logger(std::ostream &os) {
-  logger = &os;
-}
+void set_logger(std::ostream &os) { logger = &os; }
 
 std::string find_default_device_name() {
   auto error_buffer = pcap_error_buffer{};
@@ -38,11 +36,12 @@ void activate(pcap_t *device) {
   case 0:
     return;
   case PCAP_WARNING_PROMISC_NOTSUP:
-    *logger << "Device doesn't support promiscuous mode\n" << warning_string(device);
+    *logger << "Device doesn't support promiscuous mode\n"
+            << warning_string(device);
     break;
   case PCAP_WARNING_TSTAMP_TYPE_NOTSUP:
     *logger << "Capture source doesn't support time stamp type\n"
-       << warning_string(device);
+            << warning_string(device);
     break;
   case PCAP_WARNING:
     *logger << "pcap_activate warning\n" << warning_string(device);
@@ -90,7 +89,7 @@ get_device_ip_and_netmask(const std::string &device_name) {
 }
 
 bpf_program *compile_filter(pcap_t *source, const std::string &expression,
-                           const bool optimize, const bpf_u_int32 netmask) {
+                            const bool optimize, const bpf_u_int32 netmask) {
   bpf_program *filter_program = nullptr;
   if (pcap_compile(source, filter_program, expression.data(), optimize,
                    netmask) == -1 ||
@@ -169,7 +168,7 @@ void set_time_stamp(pcap_t *source, const time_stamp &tstamp) {
     return;
   case PCAP_WARNING_TSTAMP_TYPE_NOTSUP:
     *logger << "Time stamp type " << pcap_tstamp_type_val_to_name(ts_type)
-       << " not supported by device\n" + warning_string(source);
+            << " not supported by device\n" + warning_string(source);
     break;
   case PCAP_ERROR_ACTIVATED:
     throw pcap_already_activated_error{ source };
@@ -185,14 +184,14 @@ void set_time_stamp(pcap_t *source, const time_stamp &tstamp) {
 }
 
 std::vector<time_stamp> get_time_stamp_types(pcap_t *source) {
-  int **time_stamp_types = nullptr;
+  int *time_stamp_types = nullptr;
   const auto num_time_stamp_types =
-      pcap_list_tstamp_types(source, time_stamp_types);
+      pcap_list_tstamp_types(source, &time_stamp_types);
   std::vector<time_stamp> time_stamps;
   for (auto k = 0; k < num_time_stamp_types; ++k) {
-    time_stamps.push_back(static_cast<time_stamp>(*time_stamp_types[k]));
+    time_stamps.push_back(static_cast<time_stamp>(time_stamp_types[k]));
   }
-  pcap_free_tstamp_types(*time_stamp_types);
+  pcap_free_tstamp_types(time_stamp_types);
   if (num_time_stamp_types == PCAP_ERROR) {
     throw pcap_error{ "pcap_list_tstamp_types error\n" + error_string(source) };
   }
@@ -205,19 +204,20 @@ void set_capture_direction(pcap_t *source, const capture_direction &dir) {
   }
 }
 
-void loop(pcap_t *source, pcap_handler handler, const int count, unsigned char *user_args) {
+void loop(pcap_t *source, pcap_handler handler, const int count,
+          unsigned char *user_args) {
   const auto result = pcap_loop(source, count, handler, user_args);
   switch (result) {
-    case 0:
-      *logger << "pcap_loop finished successfully\n";
-      break;
-    case -1:
-      throw pcap_error{"pcap_loop error\n" + error_string(source)};
-    case -2:
-      *logger << "pcap_loop stopped by call to pcap_breaklook\n";
-      break;
-    default:
-      *logger << "pcap_loop unknown error\n" + error_string(source);
+  case 0:
+    *logger << "pcap_loop finished successfully\n";
+    break;
+  case -1:
+    throw pcap_error{ "pcap_loop error\n" + error_string(source) };
+  case -2:
+    *logger << "pcap_loop stopped by call to pcap_breaklook\n";
+    break;
+  default:
+    *logger << "pcap_loop unknown error\n" + error_string(source);
   }
 }
 
@@ -227,7 +227,7 @@ std::vector<std::string> find_all_devices() {
   const auto result = pcap_findalldevs(&all_devices, error_buffer.data());
   if (result != 0) {
     pcap_freealldevs(all_devices);
-    throw pcap_error{"pcap_findalldevs error\n" + error_string(error_buffer)};
+    throw pcap_error{ "pcap_findalldevs error\n" + error_string(error_buffer) };
   }
   std::vector<std::string> devices;
   for (auto device = all_devices; device != nullptr; device = device->next) {
@@ -237,4 +237,12 @@ std::vector<std::string> find_all_devices() {
   return devices;
 }
 
+std::string qtos(const bpf_u_int32 q) {
+  auto one = q & 0xff;
+  auto two = (q >> 8) & 0xff;
+  auto three = (q >> 16) & 0xff;
+  auto four = (q >> 24) & 0xff;
+  return std::to_string(one) + "." + std::to_string(two) + "." +
+         std::to_string(three) + "." + std::to_string(four);
+}
 }
