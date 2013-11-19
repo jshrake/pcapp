@@ -57,6 +57,7 @@ void device::set_filter(filter_program filter) {
 }
 
 void device::loop(pcap_handler handler, const int count, unsigned char *user_arguments) {
+  libpcap::activate(device_);
   auto loop_thread = std::thread{[=]() -> void {
     libpcap::loop(device_, handler, count, user_arguments);
   }};
