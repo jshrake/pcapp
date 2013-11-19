@@ -14,7 +14,8 @@ public:
   filter_program &operator=(const filter_program &program);
   filter_program &operator=(filter_program &&program);
   void swap(filter_program &other);
-  bpf_program &get() { return *program_; }
+  const std::string &expression() { return expression_; }
+  bpf_program *get() const { return program_; }
 
 private:
   pcap_t *device_ = nullptr;

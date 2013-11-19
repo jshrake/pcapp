@@ -1,9 +1,9 @@
 #pragma once
 #include <pcap/pcap.h>
 
-#include <libpcap++/pcap_capture_direction_type.hpp>
-#include <libpcap++/pcap_filter_program.hpp>
-#include <libpcap++/pcap_time_stamp_type.hpp>
+#include <pcap_cpp/capture_direction.hpp>
+#include <pcap_cpp/filter_program.hpp>
+#include <pcap_cpp/time_stamp.hpp>
 
 #include <chrono>
 #include <string>
@@ -29,7 +29,7 @@ public:
   void set_snapshot_length(const int snapshot_length);
   void set_timeout(const std::chrono::milliseconds time);
   void set_buffer_size(const int bytes); 
-  void set_time_stamp_type(const time_stamp_type &tstamp);
+  void set_time_stamp(const time_stamp &tstamp);
   void set_capture_direction(const capture_direction &direction);
   void set_filter(filter_program filter);
   void loop(pcap_handler handler, const int count = -1, unsigned char *user_arguments = nullptr);

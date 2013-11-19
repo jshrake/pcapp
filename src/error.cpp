@@ -1,4 +1,4 @@
-#include <libpcap++/pcap_error.hpp>
+#include <pcap_cpp/error.hpp>
 
 namespace libpcap {
 

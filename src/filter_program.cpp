@@ -1,5 +1,5 @@
-#include <libpcap++/pcap_filter_program.hpp>
-#include <libpcap++/pcap.hpp>
+#include <pcap_cpp/filter_program.hpp>
+#include <pcap_cpp/pcap.hpp>
 
 namespace libpcap {
 filter_program::filter_program(pcap_t *device, const std::string expression,

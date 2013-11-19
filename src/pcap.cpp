@@ -1,7 +1,16 @@
-#include <libpcap++/pcap.hpp>
-#include <libpcap++/pcap_error.hpp>
+#include <pcap_cpp/pcap.hpp>
+#include <pcap_cpp/error.hpp>
+#include <iostream>
+
+namespace {
+  std::ostream *logger{&std::cerr};
+}
 
 namespace libpcap {
+
+void set_logger(std::ostream &os) {
+  logger = &os;
+}
 
 std::string find_default_device_name() {
   auto error_buffer = pcap_error_buffer{};
@@ -23,20 +32,20 @@ pcap_t *create(const std::string &device_name) {
   return device;
 }
 
-void activate(pcap_t *device, std::ostream &os) {
+void activate(pcap_t *device) {
   const auto result = pcap_activate(device);
   switch (result) {
   case 0:
     return;
   case PCAP_WARNING_PROMISC_NOTSUP:
-    os << "Device doesn't support promiscuous mode\n" << warning_string(device);
+    *logger << "Device doesn't support promiscuous mode\n" << warning_string(device);
     break;
   case PCAP_WARNING_TSTAMP_TYPE_NOTSUP:
-    os << "Capture source doesn't support time stamp type\n"
+    *logger << "Capture source doesn't support time stamp type\n"
        << warning_string(device);
     break;
   case PCAP_WARNING:
-    os << "pcap_activate warning\n" << warning_string(device);
+    *logger << "pcap_activate warning\n" << warning_string(device);
     break;
   case PCAP_ERROR_ACTIVATED:
     throw pcap_error{ "Capture source already activated\n" +
@@ -152,15 +161,14 @@ void set_buffer_size(pcap_t *source, const int bytes) {
   }
 }
 
-void set_time_stamp_type(pcap_t *source, time_stamp_type tstamp,
-                         std::ostream &os) {
+void set_time_stamp(pcap_t *source, const time_stamp &tstamp) {
   const auto ts_type = static_cast<int>(tstamp);
   const auto result = pcap_set_tstamp_type(source, ts_type);
   switch (result) {
   case 0:
     return;
   case PCAP_WARNING_TSTAMP_TYPE_NOTSUP:
-    os << "Time stamp type " << pcap_tstamp_type_val_to_name(ts_type)
+    *logger << "Time stamp type " << pcap_tstamp_type_val_to_name(ts_type)
        << " not supported by device\n" + warning_string(source);
     break;
   case PCAP_ERROR_ACTIVATED:
@@ -176,13 +184,13 @@ void set_time_stamp_type(pcap_t *source, time_stamp_type tstamp,
   }
 }
 
-std::vector<time_stamp_type> get_time_stamp_types(pcap_t *source) {
+std::vector<time_stamp> get_time_stamp_types(pcap_t *source) {
   int **time_stamp_types = nullptr;
   const auto num_time_stamp_types =
       pcap_list_tstamp_types(source, time_stamp_types);
-  std::vector<time_stamp_type> time_stamps;
+  std::vector<time_stamp> time_stamps;
   for (auto k = 0; k < num_time_stamp_types; ++k) {
-    time_stamps.push_back(static_cast<time_stamp_type>(*time_stamp_types[k]));
+    time_stamps.push_back(static_cast<time_stamp>(*time_stamp_types[k]));
   }
   pcap_free_tstamp_types(*time_stamp_types);
   if (num_time_stamp_types == PCAP_ERROR) {
@@ -197,19 +205,19 @@ void set_capture_direction(pcap_t *source, const capture_direction &dir) {
   }
 }
 
-void loop(pcap_t *source, pcap_handler handler, const int count, unsigned char *user_args, std::ostream &os) {
+void loop(pcap_t *source, pcap_handler handler, const int count, unsigned char *user_args) {
   const auto result = pcap_loop(source, count, handler, user_args);
   switch (result) {
     case 0:
-      os << "pcap_loop finished successfully\n";
+      *logger << "pcap_loop finished successfully\n";
       break;
     case -1:
       throw pcap_error{"pcap_loop error\n" + error_string(source)};
     case -2:
-      os << "pcap_loop stopped by call to pcap_breaklook\n";
+      *logger << "pcap_loop stopped by call to pcap_breaklook\n";
       break;
     default:
-      os << "pcap_loop unknown error\n" + error_string(source);
+      *logger << "pcap_loop unknown error\n" + error_string(source);
   }
 }
 
