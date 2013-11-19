@@ -31,6 +31,6 @@ void set_time_stamp(pcap_t *source, const time_stamp &tstamp);
 std::vector<time_stamp> get_time_stamp_types(pcap_t *source);
 void set_capture_direction(pcap_t *source, const capture_direction &dir);
 void loop(pcap_t *source, pcap_handler handler, const int count, unsigned char *user_args);
-std::vector<pcap_if_t*> find_all_devices();
+std::vector<std::string> find_all_devices();
 void set_logger(std::ostream &os);
 }

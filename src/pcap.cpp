@@ -221,19 +221,19 @@ void loop(pcap_t *source, pcap_handler handler, const int count, unsigned char *
   }
 }
 
-std::vector<pcap_if_t*> find_all_devices() {
-  pcap_if_t **all_devices = nullptr;
+std::vector<std::string> find_all_devices() {
+  pcap_if_t *all_devices = nullptr;
   auto error_buffer = pcap_error_buffer{};
-  const auto result = pcap_findalldevs(all_devices, error_buffer.data());
+  const auto result = pcap_findalldevs(&all_devices, error_buffer.data());
   if (result != 0) {
-    pcap_freealldevs(*all_devices);
+    pcap_freealldevs(all_devices);
     throw pcap_error{"pcap_findalldevs error\n" + error_string(error_buffer)};
   }
-  std::vector<pcap_if_t*> devices;
-  for (auto device = all_devices[0]; device != nullptr; device = device->next) {
-    devices.emplace_back(device);
+  std::vector<std::string> devices;
+  for (auto device = all_devices; device != nullptr; device = device->next) {
+    devices.emplace_back(device->name);
   }
-  pcap_freealldevs(*all_devices);
+  pcap_freealldevs(all_devices);
   return devices;
 }
 
