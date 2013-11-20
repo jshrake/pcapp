@@ -1,6 +1,8 @@
 #include <pcap_cpp/pcap.hpp>
 #include <pcap_cpp/error.hpp>
+#include <cassert>
 #include <iostream>
+#include <memory>
 
 namespace {
 std::ostream *logger{ &std::cerr };
@@ -20,14 +22,18 @@ std::string find_default_device_name() {
   return device_name;
 }
 
-pcap_t *create(const std::string &device_name) {
+unique_pcap_t get_default_device() {
+  return libpcap::create(find_default_device_name());
+}
+
+unique_pcap_t create(const std::string &device_name) {
   auto error_buffer = pcap_error_buffer{};
   auto device = pcap_create(device_name.data(), error_buffer.data());
   if (!device) {
     throw pcap_error{ "Couldn't create device " + device_name + "\n" +
                       error_string(error_buffer) };
   }
-  return device;
+  return unique_pcap_t{device, &pcap_close}; 
 }
 
 void activate(pcap_t *device) {
@@ -88,16 +94,16 @@ get_device_ip_and_netmask(const std::string &device_name) {
   return { ip, netmask };
 }
 
-bpf_program *compile_filter(pcap_t *source, const std::string &expression,
+unique_bpf_program compile_filter(pcap_t *source, const std::string &expression,
                             const bool optimize, const bpf_u_int32 netmask) {
-  bpf_program *filter_program = nullptr;
-  if (pcap_compile(source, filter_program, expression.data(), optimize,
+  auto filter_program = unique_bpf_program{new bpf_program, &pcap_freecode};
+  if (pcap_compile(source, filter_program.get(), expression.data(), optimize,
                    netmask) == -1 ||
       !filter_program) {
     throw pcap_error{ "Couldn't compile filter " + expression + "\n" +
                       error_string(source) };
   }
-  return filter_program;
+  return filter_program; 
 }
 
 void set_filter(pcap_t *source, bpf_program *filter_program) {
@@ -237,12 +243,5 @@ std::vector<std::string> find_all_devices() {
   return devices;
 }
 
-std::string qtos(const bpf_u_int32 q) {
-  auto one = q & 0xff;
-  auto two = (q >> 8) & 0xff;
-  auto three = (q >> 16) & 0xff;
-  auto four = (q >> 24) & 0xff;
-  return std::to_string(one) + "." + std::to_string(two) + "." +
-         std::to_string(three) + "." + std::to_string(four);
-}
+
 }

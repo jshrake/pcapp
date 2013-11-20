@@ -1,4 +1,4 @@
-#include <pcap_cpp/time_stamp.hpp>
+#include <pcap_cpp/pcap_types.hpp>
 #include <iostream>
 namespace libpcap {
 std::ostream &operator<<(std::ostream &os, const time_stamp &tstamp) {

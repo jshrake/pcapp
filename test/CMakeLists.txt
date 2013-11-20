@@ -3,6 +3,7 @@ link_directories(${CMAKE_SOURCE_DIR}/dep/libpcap ${CMAKE_SOURCE_DIR}/lib)
 
 set(SRCFILES
   pcap_tests.cpp
+  device_tests.cpp
   )
 
 add_executable(${PROJECT_TEST_NAME} ${SRCFILES})
