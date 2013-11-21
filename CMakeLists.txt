@@ -17,9 +17,9 @@ add_subdirectory(src)
 
 # Testing with the Google Test framework
 enable_testing()
-set(GTEST_TARGET "test_pcap")
-set(PROJECT_TEST_NAME "test_${CMAKE_PROJECT_NAME}")
-add_custom_target(${GTEST_TARGET} 
+set(PCAP_TEST_TARGET "test-pcap")
+set(PROJECT_TEST_NAME "test_${PROJECT_NAME}")
+add_custom_target(${PCAP_TEST_TARGET} 
   COMMAND "${CMAKE_CURRENT_BINARY_DIR}/test/${PROJECT_TEST_NAME}"
 COMMENT "Running unit tests with Google Test Framework" VERBATIM)
 add_subdirectory(test)
